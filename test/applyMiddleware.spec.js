@@ -26,6 +26,24 @@ describe('applyMiddleware', () => {
     expect(store.getState()).toEqual([ { id: 1, text: 'Use Redux' }, { id: 2, text: 'Flux FTW!' } ])
   })
 
+  it("wraps dispatch method with middleware sencondly", ()=>{
+    function logger({dispatch, getState}){
+    let next = dispatch;
+    return function(next) {
+      return function dispatchAndLog(action) {
+        console.log('dispatching', action);
+        let result = next(action);
+        console.log('next state', getState());
+        return result;
+      }
+    }
+  }
+  const store = applyMiddleware(logger)(createStore)(reducers.todos);
+  store.dispatch(addTodo('Use Redux'))
+  store.dispatch(addTodo('Flux FTW!'))
+  expect(store.getState()).toEqual([ { id: 1, text: 'Use Redux' }, { id: 2, text: 'Flux FTW!' } ])
+  })
+
   it('passes recursive dispatches through the middleware chain', () => {
     function test(spyOnMethods) {
       return () => next => action => {
